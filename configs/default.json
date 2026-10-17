@@ -1,0 +1,15 @@
+{
+  "seed": 42,
+  "folds": 5,
+  "post_top_k": 3,
+  "comment_top_k": 5,
+  "max_in_neighbors": 4,
+  "max_out_neighbors": 4,
+  "max_posts": 128,
+  "max_comments": 128,
+  "text_loss_weight": 1.0,
+  "learning_rate": 0.0001,
+  "epochs": 30,
+  "patience": 6,
+  "num_workers": 4
+}

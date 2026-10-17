@@ -1,0 +1,8 @@
+networkx>=3.2
+numpy>=2.0
+scikit-learn>=1.4
+scipy>=1.11
+sentence-transformers>=4.1
+tldextract>=5.1
+torch>=2.5
+transformers>=4.51

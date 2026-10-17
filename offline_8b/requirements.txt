@@ -1,0 +1,4 @@
+numpy>=1.26,<3
+transformers>=4.51,<5
+sentence-transformers>=3.4,<6
+tldextract>=5.1,<6
