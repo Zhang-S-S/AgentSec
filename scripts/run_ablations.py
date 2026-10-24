@@ -19,7 +19,7 @@ VARIANTS = (
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Run the SARA ablation suite")
+    parser = argparse.ArgumentParser(description="Run the AgentSec ablation suite")
     parser.add_argument("--embedding-dir", type=Path, required=True)
     parser.add_argument("--graph-arrays", type=Path, required=True)
     parser.add_argument("--output-root", type=Path, required=True)

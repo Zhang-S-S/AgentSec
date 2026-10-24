@@ -1,4 +1,4 @@
-"""Cross-validation and result utilities for SARA experiments."""
+"""Cross-validation and result utilities for AgentSec experiments."""
 from __future__ import annotations
 
 import hashlib

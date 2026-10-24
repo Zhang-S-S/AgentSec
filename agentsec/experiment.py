@@ -1,4 +1,4 @@
-"""Five-fold training and ablation entry point for SARA."""
+"""Five-fold training and ablation entry point for AgentSec."""
 from __future__ import annotations
 
 import argparse
@@ -32,7 +32,7 @@ from . import cross_validation as cv
 
 
 VARIANTS = {
-    "full": "Full SARA model",
+    "full": "Full AgentSec model",
     "without_residual_topk": "Replace Residual Top-k MIL with mean pooling",
     "pure_mil": "Replace Residual Top-k MIL with attention MIL",
     "without_graph": "Remove the directed graph contribution",
@@ -43,7 +43,7 @@ VARIANTS = {
 
 
 def _arguments() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Train and evaluate SARA")
+    parser = argparse.ArgumentParser(description="Train and evaluate AgentSec")
     parser.add_argument("--embedding-dir", type=Path, required=True)
     parser.add_argument("--graph-arrays", type=Path, required=True)
     parser.add_argument("--output-root", type=Path, required=True)

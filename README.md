@@ -1,6 +1,6 @@
-# SARA
+# AgentSec
 
-SARA is an account-level risk detector for agent social platforms. It combines
+AgentSec is an account-level risk detector for agent social platforms. It combines
 Residual Top-k multiple-instance learning over posts and comments, auxiliary
 profile and URL evidence, and directed message passing over the comment graph.
 
@@ -10,7 +10,7 @@ profile and URL evidence, and directed message passing over the comment graph.
 comment_network/   directed graph construction and graph encoders
 multisource/       account encoders and Residual Top-k MIL
 offline_8b/        Qwen3-Embedding-8B preprocessing and embedding pipeline
-sara/              deterministic five-fold experiment orchestration
+agentsec/              deterministic five-fold experiment orchestration
 scripts/           command-line entry points
 configs/           paper configuration
 tests/             lightweight configuration tests
@@ -72,6 +72,21 @@ python scripts/build_graph.py \
 
 The training command expects `graph_arrays.npz` produced by this stage.
 
+### Directional mixing analysis
+
+The following command compares Risky-to-Normal and Normal-to-Risky edges,
+comment-weighted interaction intensity, reciprocal cross-label pairs, and
+significance under account-level bootstrap and label permutation:
+
+```bash
+python scripts/analyze_directional_mixing.py \
+  --graph-arrays /path/to/graph/graph_arrays.npz \
+  --output-dir /path/to/outputs/directional_mixing \
+  --permutations 10000 \
+  --bootstrap 10000 \
+  --seed 42
+```
+
 ## Five-fold evaluation
 
 The paper configuration uses seed 42, post top-k 3, comment top-k 5, four
@@ -120,6 +135,30 @@ python scripts/run_sensitivity.py \
 
 Every run stores its configuration, input hashes, fold-level predictions,
 per-fold metrics, pooled out-of-fold metrics, and mean and standard deviation.
+
+## Temporal deployment simulation
+
+The temporal runner trains on May 1--17 using an account-level train/validation
+split, scores accounts with cumulative information available through May 24,
+and retrospectively evaluates direct risky-to-normal interactions from May 25
+through June 1. Post, comment, URL, and graph inputs are truncated at each
+cutoff. Static profile snapshots are retained and explicitly recorded as such.
+
+```bash
+python scripts/run_temporal_intervention.py \
+  --source-db /path/to/platform.db \
+  --labels-db /path/to/labels.db \
+  --embedding-dir /path/to/embeddings \
+  --output-root /path/to/outputs/temporal_intervention \
+  --device cuda:0 \
+  --num-workers 4 \
+  --seed 42
+```
+
+The output includes validation-selected predictions, the risk ranking, direct
+exposure counts, and matched-budget comparisons against random selection and
+historical out-degree. The simulation removes observed outgoing interactions;
+it does not estimate downstream causal behavior changes.
 
 ## Reproducibility
 

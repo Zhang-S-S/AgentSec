@@ -41,6 +41,9 @@ class AnalysisConfig:
     seed: int = 42
     permutations: int = 500
     labeled_only: bool = False
+    start_at: str | None = None
+    end_at: str | None = None
+    skip_statistical_analysis: bool = False
 
 
 @dataclass
@@ -512,8 +515,20 @@ def build_and_analyze(config: AnalysisConfig) -> dict:
         if integrity != "ok":
             raise ValueError(f"Source database failed quick_check: {integrity}")
         agents = {str(row[0]) for row in db.execute("SELECT id FROM agents")}
+        time_conditions = []
+        time_parameters: list[str] = []
+        if config.start_at:
+            time_conditions.append("julianday(created_at) >= julianday(?)")
+            time_parameters.append(config.start_at)
+        if config.end_at:
+            time_conditions.append("julianday(created_at) < julianday(?)")
+            time_parameters.append(config.end_at)
+        post_where = "author_id IS NOT NULL"
+        if time_conditions:
+            post_where += " AND " + " AND ".join(time_conditions)
         post_counts = {str(aid): int(count) for aid, count in db.execute(
-            "SELECT author_id,COUNT(*) FROM posts WHERE author_id IS NOT NULL GROUP BY author_id"
+            f"SELECT author_id,COUNT(*) FROM posts WHERE {post_where} GROUP BY author_id",
+            time_parameters,
         )}
         query = """
             SELECT c.id,c.post_id,c.parent_id,c.author_id,c.content,c.created_at,
@@ -522,7 +537,11 @@ def build_and_analyze(config: AnalysisConfig) -> dict:
             LEFT JOIN posts p ON p.id=c.post_id
             LEFT JOIN comments pc ON pc.id=c.parent_id
         """
-        cursor = db.execute(query)
+        comment_conditions = [condition.replace("created_at", "c.created_at")
+                              for condition in time_conditions]
+        if comment_conditions:
+            query += " WHERE " + " AND ".join(comment_conditions)
+        cursor = db.execute(query, time_parameters)
         for index, (_comment_id, post_id, parent_id, source, content, created_at, depth,
                     post_author, parent_author) in enumerate(cursor, 1):
             audit["comments_total"] += 1
@@ -717,17 +736,20 @@ def build_and_analyze(config: AnalysisConfig) -> dict:
         "cross_target_repeat_fraction", "cross_post_repeat_fraction",
         "authored_thread_mean_participants", "authored_thread_mean_comments",
     ]
-    comparisons = _feature_comparisons(node_rows, comparison_features) if labels else []
+    run_statistics = bool(labels) and not config.skip_statistical_analysis
+    comparisons = _feature_comparisons(node_rows, comparison_features) if run_statistics else []
     adjusted_comparisons = activity_adjusted_feature_tests(
         node_rows, comparison_features, config.seed, config.permutations
-    ) if labels else []
-    mixing = _permutation_mixing(node_rows, edge_rows, config.seed, config.permutations) if labels else {}
+    ) if run_statistics else []
+    mixing = _permutation_mixing(
+        node_rows, edge_rows, config.seed, config.permutations
+    ) if run_statistics else {}
     hypergraph = _hypergraph_mixing(
         node_rows, node_index, threads, config.seed, config.permutations
-    ) if labels else {}
+    ) if run_statistics else {}
 
     community_rows = []
-    if labels:
+    if run_statistics:
         # Community enrichment is defined on the active graph. Isolated labeled
         # accounts cannot belong to a detected community and must not enter its
         # reference rate.
@@ -768,6 +790,8 @@ def build_and_analyze(config: AnalysisConfig) -> dict:
         "source_size": config.source_db.stat().st_size,
         "source_sha256": _file_sha256(config.source_db),
         "label_source": label_metadata, "seed": config.seed, "permutations": config.permutations,
+        "time_window": {"start_inclusive": config.start_at, "end_exclusive": config.end_at},
+        "statistical_analysis_skipped": config.skip_statistical_analysis,
         "node_scope": "labeled_only" if config.labeled_only else "all_source_agents",
         "edge_definition": "comment author -> parent-comment author; top-level -> post author",
         "normalization": "NFKC+casefold; HTML tags removed; URL/email/mention/UUID placeholders; whitespace collapsed",

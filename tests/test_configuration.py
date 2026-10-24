@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import unittest
 
-from sara.experiment import VARIANTS
+from agentsec.experiment import VARIANTS
 from multisource.model_risk_residual_mil import RiskResidualMILConfig
 
 

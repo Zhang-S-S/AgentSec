@@ -23,7 +23,7 @@ from .gnn_evidence_loss import JointEvidenceFusionModel
 
 
 INSTANCE_BEHAVIOR_CACHE = Path(
-    os.environ.get("SARA_INSTANCE_BEHAVIOR_CACHE", "data/instance_behavior.npy")
+    os.environ.get("AGENTSEC_INSTANCE_BEHAVIOR_CACHE", "data/instance_behavior.npy")
 )
 
 

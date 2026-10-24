@@ -13,7 +13,7 @@ def _values(text: str, cast):
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Run SARA sensitivity experiments")
+    parser = argparse.ArgumentParser(description="Run AgentSec sensitivity experiments")
     parser.add_argument("--embedding-dir", type=Path, required=True)
     parser.add_argument("--graph-arrays", type=Path, required=True)
     parser.add_argument("--reference-splits-root", type=Path, required=True)

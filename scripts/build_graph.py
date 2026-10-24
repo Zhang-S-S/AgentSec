@@ -16,6 +16,9 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--permutations", type=int, default=500)
     parser.add_argument("--labeled-only", action="store_true")
+    parser.add_argument("--start-at")
+    parser.add_argument("--end-at")
+    parser.add_argument("--skip-statistical-analysis", action="store_true")
     args = parser.parse_args()
     report = build_and_analyze(AnalysisConfig(
         source_db=args.source_db,
@@ -24,6 +27,9 @@ def main() -> None:
         seed=args.seed,
         permutations=args.permutations,
         labeled_only=args.labeled_only,
+        start_at=args.start_at,
+        end_at=args.end_at,
+        skip_statistical_analysis=args.skip_statistical_analysis,
     ))
     print(json.dumps(report, indent=2, sort_keys=True))
 
